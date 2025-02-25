@@ -6,15 +6,23 @@
 
 bool first_loop = true;
 bool recondition = false;
-RS41 rs41(Serial7);
+RS41 rs41(RS41SERIAL);
 
 void setup()
 {
   Serial.begin(115200);
+  while (!Serial) {;}  
+
   Serial.print("RS41test built: ");
   Serial.print(__DATE__);
   Serial.print(",");
   Serial.println(__TIME__);
+
+#ifdef RATSRS41
+  pinMode(2, OUTPUT);
+  digitalWrite(2, HIGH);
+#endif
+
 
   Serial.println("Do you want to recondition the RS41[y/n]? ");
   while (Serial.available() == 0) {}

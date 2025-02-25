@@ -16,20 +16,26 @@
 
 bool verbose = true;
 bool first_loop = true;
-RS41 rs41(Serial7);
+RS41 rs41(RS41SERIAL);
 
 // The csv file to create. It will be empty
 // if we are unable to access the SD card.
 String csv_file_name = "";
 File csv_file;
 
+// Forward declarations
+String next_file_name();
+boolean isIntStr(String str);
+
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial)
-  {
-    ;
-  }
+  while (!Serial) {;}  
+  
+  Serial.print("RS41csv built: ");
+  Serial.print(__DATE__);
+  Serial.print(",");
+  Serial.println(__TIME__);
 
   if (!SD.begin(BUILTIN_SDCARD))
   {
