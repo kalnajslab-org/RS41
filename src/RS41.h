@@ -7,7 +7,7 @@
 class RS41 {
 
 #define RS41_SERIAL_BUFFER_SIZE 2048
-#define RS41_GPIO_PWR_PIN 32
+//#define RS41_GPIO_PWR_PIN 32
 #define RS41_SERIAL_TIMEOUT_MS 300
 /// The number of times to (re)try to get meta data from
 /// the RS41. It's significant because if we try too long, and
@@ -67,7 +67,8 @@ class RS41 {
   public:
     /// @brief Constructor
     /// @param serial The RS421 serial port
-    explicit RS41(HardwareSerialIMXRT& serial);
+    /// @param rs41_en_pin The RS41 power control pin
+    explicit RS41(HardwareSerialIMXRT& serial, int rs41_en_pin);
     /// @brief Destructor
     ///   Power off RS41
     ~RS41();
@@ -132,6 +133,7 @@ class RS41 {
 
   protected:
     HardwareSerialIMXRT& _serial;
+    int _rs41_en_pin;
     uint8_t _rs41_rx_buffer[RS41_SERIAL_BUFFER_SIZE];
     uint8_t _rs41_tx_buffer[RS41_SERIAL_BUFFER_SIZE];
     String _banner;

@@ -2,13 +2,13 @@
 #include "Arduino.h"
 #include "RS41.h"
 
-RS41::RS41(HardwareSerialIMXRT& serial):
-_serial(serial) 
-{
+RS41::RS41(HardwareSerialIMXRT& serial, int rs41_en_pin) : 
+_serial(serial), 
+_rs41_en_pin(rs41_en_pin) {
 }
 
 RS41::~RS41() {
-  digitalWrite(RS41_GPIO_PWR_PIN, LOW);
+  digitalWrite(_rs41_en_pin, LOW);
 }
 
 void RS41::init() {
@@ -20,10 +20,10 @@ void RS41::init() {
   _serial.addMemoryForWrite(&_rs41_tx_buffer, sizeof(_rs41_tx_buffer));
 
   // Power cycle the RS41
-  pinMode(RS41_GPIO_PWR_PIN, OUTPUT);
-  digitalWrite(RS41_GPIO_PWR_PIN, LOW);
+  pinMode(_rs41_en_pin, OUTPUT);
+  digitalWrite(_rs41_en_pin, LOW);
   delay(100);
-  digitalWrite(RS41_GPIO_PWR_PIN, HIGH);
+  digitalWrite(_rs41_en_pin, HIGH);
 
   // The RS41 immediately sends out a banner
   for (int i = 0; i < RS41_SERIAL_TRIES; i++) {
@@ -56,8 +56,8 @@ void RS41::init() {
 
 void RS41::pwr_off() {
   // Power off the RS41
-  pinMode(RS41_GPIO_PWR_PIN, OUTPUT);
-  digitalWrite(RS41_GPIO_PWR_PIN, LOW);
+  pinMode(_rs41_en_pin, OUTPUT);
+  digitalWrite(_rs41_en_pin, LOW);
 }
 
 String RS41::banner() {
