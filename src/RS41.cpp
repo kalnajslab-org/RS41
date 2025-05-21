@@ -77,6 +77,28 @@ RS41::RS41SensorData_t RS41::decoded_sensor_data(bool nocache=false) {
     String tokens[17];
     // Add a trailing comma so that all tokens are terminated.
     str_data += ',';
+    //for the new version on the RS41
+    if (tokenize_string(str_data, tokens, 14)) {   
+      decoded_data.valid = true;
+      decoded_data.frame_count = tokens[0].toInt();
+      decoded_data.air_temp_degC = tokens[1].toFloat();
+      decoded_data.humdity_percent = tokens[2].toFloat();
+      decoded_data.hsensor_temp_degC = tokens[3].toFloat();
+      decoded_data.pres_mb = tokens[4].toFloat();
+      decoded_data.internal_temp_degC = tokens[5].toFloat();
+      decoded_data.module_status = tokens[6].toInt();
+      decoded_data.module_error = tokens[7].toInt();
+      decoded_data.pcb_supply_V = tokens[8].toFloat();
+      decoded_data.lsm303_temp_degC = tokens[9].toFloat();
+      decoded_data.pcb_heater_on = tokens[10].toInt();
+      decoded_data.mag_hdgXY_deg = tokens[11].toFloat();
+      decoded_data.mag_hdgXZ_deg = tokens[12].toFloat();
+      decoded_data.mag_hdgYZ_deg = tokens[13].toFloat();
+      //decoded_data.accelX_mG = tokens[14].toFloat();
+      //decoded_data.accelY_mG = tokens[15].toFloat();
+      //decoded_data.accelZ_mG = tokens[16].toFloat();
+    }
+    //for the old version on the RS41
     if (tokenize_string(str_data, tokens, 17)) {
       decoded_data.valid = true;
       decoded_data.frame_count = tokens[0].toInt();
