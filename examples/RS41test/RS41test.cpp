@@ -6,12 +6,12 @@
 
 bool first_loop = true;
 bool recondition = false;
-RS41 rs41(RS41SERIAL);
+RS41 rs41(RS41SERIAL, RS41EN);
 
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial) {;}  
+  delay(3000);
 
   Serial.print("RS41test built: ");
   Serial.print(__DATE__);
@@ -19,8 +19,8 @@ void setup()
   Serial.println(__TIME__);
 
 #ifdef RATSRS41
-  pinMode(2, OUTPUT);
-  digitalWrite(2, HIGH);
+  pinMode(RS41EN, OUTPUT);
+  digitalWrite(RS41EN, HIGH);
 #endif
 
 
@@ -30,7 +30,6 @@ void setup()
   if ((ans=="Y") || (ans=="y")) {
     recondition = true;
   }
-
   // Configure the serial port, power on the RS41, capture the banner, query the metadata.
   rs41.init();
 }
@@ -39,8 +38,8 @@ void loop()
 {
   if (first_loop) {
     Serial.println(rs41.banner());
-    Serial.println("RS41 meta data: " + rs41.meta_data());
     Serial.println(rs41.sensor_data_var_names);
+    Serial.println("RS41 meta data:" + rs41.meta_data());
     first_loop = false;
   }
 
