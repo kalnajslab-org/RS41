@@ -105,8 +105,9 @@ class RS41 {
     /// @brief Meta data
     /// @return The cached meta data.
     String meta_data();
-    /// @brief Query the RS41 for the RS41 meta data
+    /// @brief Return meta data from the RS41
     /// @return A string containing the sensor data. The 
+    /// meta data was fetched at power up. The
     /// string will be zero length if the query timed out.
     String read_meta_data();
     /// @brief Start the recondition process

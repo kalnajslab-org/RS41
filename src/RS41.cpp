@@ -24,6 +24,7 @@ void RS41::init() {
   digitalWrite(_rs41_en_pin, LOW);
   delay(100);
   digitalWrite(_rs41_en_pin, HIGH);
+  delay(1000); // Wait for RS41 banner to get sent
 
   // The RS41 immediately sends out a banner
   for (int i = 0; i < RS41_SERIAL_TRIES; i++) {
@@ -35,7 +36,8 @@ void RS41::init() {
   }
   clear_read_buffer();
 
-  // Wait for RS41 to get running
+  // Wait for RS41 to get running. Without this delay, the
+  // RS41 does not seem to respond to the RMD command. Don't know why.
   delay(1000);
 
   // Get the meta data
@@ -170,7 +172,8 @@ String RS41::rs41_cmd(const String& cmd) {
   _serial.write(cmd.c_str());
   _serial.write("\r");
   _serial.flush();
-  return _serial.readStringUntil('\r');
+  String response = _serial.readStringUntil('\r');
+  return response;
 }
 
 void RS41::clear_read_buffer() {
