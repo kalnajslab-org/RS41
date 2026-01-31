@@ -1,5 +1,5 @@
-# RS41 Arduino Library
-NCAR RS41 sensor support library for Teensy 4.1.
+# RSS421 Arduino Library
+NCAR RSS421 sensor support library for Teensy 4.1.
 
 Dependencies: Teensyduino >= v1.59
 
