@@ -44,17 +44,17 @@ class RS41 {
       /// @brief 10. Status of the PCB heater: disabled =0, enabled=1
       unsigned int pcb_heater_on = 0;
       /// @brief 11. Magnetic heading from the LSM303 X-Y measurements. Range 0-360°
-      double mag_hdgXY_deg = 0.0;
+      int32_t mag_hdgXY_deg = 0;
       /// @brief 12. Magnetic heading from the LSM303 X-Z measurements. Range 0-360°
-      double mag_hdgXZ_deg = 0.0;
+      int32_t mag_hdgXZ_deg = 0;
       /// @brief 13. Magnetic heading from the LSM303 Y-Z measurements. Range 0-360°
-      double mag_hdgYZ_deg = 0.0;
+      int32_t mag_hdgYZ_deg = 0;
       /// @brief 14. X-axis gauss acceleration from the LSM303
-      double accelX_mG = 0.0;
+      int32_t accelX_mG = 0;
       /// @brief 15. Y-axis gauss acceleration from the LSM303
-      double accelY_mG = 0.0;
+      int32_t accelY_mG = 0;
       /// @brief 16. Z-axis gauss acceleration from the LSM303
-      double accelZ_mG = 0.0;
+      int32_t accelZ_mG = 0;
     };
 
     /// A string that can be used as a column header for sensor data CSV files.

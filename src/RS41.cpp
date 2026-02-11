@@ -93,12 +93,12 @@ RS41::RS41SensorData_t RS41::decoded_sensor_data(bool nocache=false) {
       decoded_data.pcb_supply_V = tokens[8].toFloat();
       decoded_data.lsm303_temp_degC = tokens[9].toFloat();
       decoded_data.pcb_heater_on = tokens[10].toInt();
-      decoded_data.mag_hdgXY_deg = tokens[11].toFloat();
-      decoded_data.mag_hdgXZ_deg = tokens[12].toFloat();
-      decoded_data.mag_hdgYZ_deg = tokens[13].toFloat();
-      //decoded_data.accelX_mG = tokens[14].toFloat();
-      //decoded_data.accelY_mG = tokens[15].toFloat();
-      //decoded_data.accelZ_mG = tokens[16].toFloat();
+      decoded_data.mag_hdgXY_deg = tokens[11].toInt();
+      decoded_data.mag_hdgXZ_deg = tokens[12].toInt();
+      decoded_data.mag_hdgYZ_deg = tokens[13].toInt();
+      //decoded_data.accelX_mG = tokens[14].toInt();
+      //decoded_data.accelY_mG = tokens[15].toInt();
+      //decoded_data.accelZ_mG = tokens[16].toInt();
     }
     //for the old version on the RS41
     if (tokenize_string(str_data, tokens, 17)) {
@@ -114,12 +114,12 @@ RS41::RS41SensorData_t RS41::decoded_sensor_data(bool nocache=false) {
       decoded_data.pcb_supply_V = tokens[8].toFloat();
       decoded_data.lsm303_temp_degC = tokens[9].toFloat();
       decoded_data.pcb_heater_on = tokens[10].toInt();
-      decoded_data.mag_hdgXY_deg = tokens[11].toFloat();
-      decoded_data.mag_hdgXZ_deg = tokens[12].toFloat();
-      decoded_data.mag_hdgYZ_deg = tokens[13].toFloat();
-      decoded_data.accelX_mG = tokens[14].toFloat();
-      decoded_data.accelY_mG = tokens[15].toFloat();
-      decoded_data.accelZ_mG = tokens[16].toFloat();
+      decoded_data.mag_hdgXY_deg = tokens[11].toInt();
+      decoded_data.mag_hdgXZ_deg = tokens[12].toInt();
+      decoded_data.mag_hdgYZ_deg = tokens[13].toInt();
+      decoded_data.accelX_mG = tokens[14].toInt();
+      decoded_data.accelY_mG = tokens[15].toInt();
+      decoded_data.accelZ_mG = tokens[16].toInt();
     }
   }
   return decoded_data;
