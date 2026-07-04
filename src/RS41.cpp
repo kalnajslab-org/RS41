@@ -93,12 +93,12 @@ RS41::RS41SensorData_t RS41::decoded_sensor_data(bool nocache=false) {
       decoded_data.pcb_supply_V = tokens[8].toFloat();
       decoded_data.lsm303_temp_degC = tokens[9].toFloat();
       decoded_data.pcb_heater_on = tokens[10].toInt();
-      decoded_data.mag_hdgXY_deg = tokens[11].toInt();
-      decoded_data.mag_hdgXZ_deg = tokens[12].toInt();
-      decoded_data.mag_hdgYZ_deg = tokens[13].toInt();
-      //decoded_data.accelX_mG = tokens[14].toInt();
-      //decoded_data.accelY_mG = tokens[15].toInt();
-      //decoded_data.accelZ_mG = tokens[16].toInt();
+      decoded_data.magX_mG = tokens[11].toInt();
+      decoded_data.magY_mG = tokens[12].toInt();
+      decoded_data.magZ_mG = tokens[13].toInt();
+      //decoded_data.accelX_mg = tokens[14].toInt();
+      //decoded_data.accelY_mg = tokens[15].toInt();
+      //decoded_data.accelZ_mg = tokens[16].toInt();
     }
     //for the old version on the RS41
     if (tokenize_string(str_data, tokens, 17)) {
@@ -114,15 +114,60 @@ RS41::RS41SensorData_t RS41::decoded_sensor_data(bool nocache=false) {
       decoded_data.pcb_supply_V = tokens[8].toFloat();
       decoded_data.lsm303_temp_degC = tokens[9].toFloat();
       decoded_data.pcb_heater_on = tokens[10].toInt();
-      decoded_data.mag_hdgXY_deg = tokens[11].toInt();
-      decoded_data.mag_hdgXZ_deg = tokens[12].toInt();
-      decoded_data.mag_hdgYZ_deg = tokens[13].toInt();
-      decoded_data.accelX_mG = tokens[14].toInt();
-      decoded_data.accelY_mG = tokens[15].toInt();
-      decoded_data.accelZ_mG = tokens[16].toInt();
+      decoded_data.magX_mG = tokens[11].toInt();
+      decoded_data.magY_mG = tokens[12].toInt();
+      decoded_data.magZ_mG = tokens[13].toInt();
+      decoded_data.accelX_mg = tokens[14].toInt();
+      decoded_data.accelY_mg = tokens[15].toInt();
+      decoded_data.accelZ_mg = tokens[16].toInt();
+    }
+    if (decoded_data.valid) {
+      compute_orientation(decoded_data);
     }
   }
   return decoded_data;
+}
+
+void RS41::compute_orientation(RS41SensorData_t& data) {
+  // Raw magnetometer X/Y/Z components (mG) from RSD fields 11-13
+  // (RSS421 ICD table 5).
+  const double Mx = data.magX_mG;
+  const double My = data.magY_mG;
+  const double Mz = data.magZ_mG;
+  const double Ax = data.accelX_mg;
+  const double Ay = data.accelY_mg;
+  const double Az = data.accelZ_mg;
+
+  // Roll and pitch from the accelerometer (ICD 6.3). Units cancel in the
+  // ratios, so raw mg/mG counts can be used directly.
+  const double roll  = atan2(Ay, Az);
+  const double pitch = atan2(-Ax, sqrt(Ay * Ay + Az * Az));
+
+  // Tilt-compensate the magnetometer into the horizontal plane, then
+  // compute the magnetic heading (ICD 6.4).
+  const double Mxh = Mx * cos(pitch)
+                   + My * sin(roll) * sin(pitch)
+                   + Mz * cos(roll) * sin(pitch);
+  const double Myh = My * cos(roll) - Mz * sin(roll);
+  double heading = atan2(-Myh, Mxh) * 180.0 / PI;
+  if (heading < 0.0) {
+    // Normalize to [0, 360) degrees.
+    heading += 360.0;
+  }
+
+  data.roll_deg    = roll  * 180.0 / PI;
+  data.pitch_deg   = pitch * 180.0 / PI;
+  data.heading_deg = heading;
+
+  // Orientation quality factor Q (ICD 6.6). The roll/pitch tilt
+  // compensation assumes the accelerometer measures only gravity (1g =
+  // 1000 mg); Q falls as the total acceleration departs from 1g, so it
+  // gates whether the computed orientation can be trusted.
+  const double a_mag = sqrt(Ax * Ax + Ay * Ay + Az * Az);
+  double q = 1.0 - fabs(a_mag - 1000.0) / 1000.0;
+  if (q < 0.0) { q = 0.0; }   // clamp to [0, 1]
+  if (q > 1.0) { q = 1.0; }
+  data.orientation_quality = q;
 }
 
 String RS41::read_sensor_data(bool nocache=false) {  

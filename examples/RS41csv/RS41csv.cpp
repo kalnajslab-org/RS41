@@ -90,12 +90,16 @@ void loop()
         String(sensor_data.pcb_supply_V) + comma +
         String(sensor_data.lsm303_temp_degC) + comma +
         String(sensor_data.pcb_heater_on) + comma +
-        String(sensor_data.mag_hdgXY_deg) + comma +
-        String(sensor_data.mag_hdgXZ_deg) + comma +
-        String(sensor_data.mag_hdgYZ_deg) + comma +
-        String(sensor_data.accelX_mG) + comma +
-        String(sensor_data.accelY_mG) + comma +
-        String(sensor_data.accelZ_mG);
+        String(sensor_data.magX_mG) + comma +
+        String(sensor_data.magY_mG) + comma +
+        String(sensor_data.magZ_mG) + comma +
+        String(sensor_data.accelX_mg) + comma +
+        String(sensor_data.accelY_mg) + comma +
+        String(sensor_data.accelZ_mg) + comma +
+        String(sensor_data.roll_deg) + comma +
+        String(sensor_data.pitch_deg) + comma +
+        String(sensor_data.heading_deg) + comma +
+        String(sensor_data.orientation_quality);
 
     if (csv_file_name.length()) {
       // Write it to the file

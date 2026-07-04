@@ -75,12 +75,16 @@ void loop()
     Serial.print(sensor_data.pcb_supply_V); Serial.print(",");
     Serial.print(sensor_data.lsm303_temp_degC); Serial.print(",");
     Serial.print(sensor_data.pcb_heater_on); Serial.print(",");
-    Serial.print(sensor_data.mag_hdgXY_deg); Serial.print(",");
-    Serial.print(sensor_data.mag_hdgXZ_deg); Serial.print(",");
-    Serial.print(sensor_data.mag_hdgYZ_deg); Serial.print(",");
-    Serial.print(sensor_data.accelX_mG); Serial.print(",");
-    Serial.print(sensor_data.accelY_mG); Serial.print(",");
-    Serial.print(sensor_data.accelZ_mG);
+    Serial.print(sensor_data.magX_mG); Serial.print(",");
+    Serial.print(sensor_data.magY_mG); Serial.print(",");
+    Serial.print(sensor_data.magZ_mG); Serial.print(",");
+    Serial.print(sensor_data.accelX_mg); Serial.print(",");
+    Serial.print(sensor_data.accelY_mg); Serial.print(",");
+    Serial.print(sensor_data.accelZ_mg); Serial.print(",");
+    Serial.print(sensor_data.roll_deg); Serial.print(",");
+    Serial.print(sensor_data.pitch_deg); Serial.print(",");
+    Serial.print(sensor_data.heading_deg); Serial.print(",");
+    Serial.print(sensor_data.orientation_quality);
     Serial.println();
   } else {
     Serial.println("Unable to obtain RS41 sensor data");

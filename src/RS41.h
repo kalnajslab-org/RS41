@@ -43,25 +43,42 @@ class RS41 {
       double lsm303_temp_degC = 0.0;
       /// @brief 10. Status of the PCB heater: disabled =0, enabled=1
       unsigned int pcb_heater_on = 0;
-      /// @brief 11. Magnetic heading from the LSM303 X-Y measurements. Range 0-360°
-      int32_t mag_hdgXY_deg = 0;
-      /// @brief 12. Magnetic heading from the LSM303 X-Z measurements. Range 0-360°
-      int32_t mag_hdgXZ_deg = 0;
-      /// @brief 13. Magnetic heading from the LSM303 Y-Z measurements. Range 0-360°
-      int32_t mag_hdgYZ_deg = 0;
-      /// @brief 14. X-axis gauss acceleration from the LSM303
-      int32_t accelX_mG = 0;
-      /// @brief 15. Y-axis gauss acceleration from the LSM303
-      int32_t accelY_mG = 0;
-      /// @brief 16. Z-axis gauss acceleration from the LSM303
-      int32_t accelZ_mG = 0;
+      /// @brief 11. Raw magnetometer X (mG). RSS421 ICD RSD field 11.
+      int32_t magX_mG = 0;
+      /// @brief 12. Raw magnetometer Y (mG). RSS421 ICD RSD field 12.
+      int32_t magY_mG = 0;
+      /// @brief 13. Raw magnetometer Z (mG). RSS421 ICD RSD field 13.
+      int32_t magZ_mG = 0;
+      /// @brief 14. Accelerometer X (mg, milli-g). RSS421 ICD RSD field 14.
+      int32_t accelX_mg = 0;
+      /// @brief 15. Accelerometer Y (mg, milli-g). RSS421 ICD RSD field 15.
+      int32_t accelY_mg = 0;
+      /// @brief 16. Accelerometer Z (mg, milli-g). RSS421 ICD RSD field 16.
+      int32_t accelZ_mg = 0;
+      /// @brief Computed roll angle (deg), positive = right side down.
+      /// Derived from the accelerometer per RSS421 ICD section 6.3.
+      double roll_deg = 0.0;
+      /// @brief Computed pitch angle (deg), positive = nose up.
+      /// Derived from the accelerometer per RSS421 ICD section 6.3.
+      double pitch_deg = 0.0;
+      /// @brief Computed tilt-compensated magnetic heading (deg), 0-360,
+      /// 0 = North. Derived from the magnetometer and accelerometer per
+      /// RSS421 ICD section 6.4. This is magnetic heading; add the local
+      /// magnetic declination (ICD 6.5) to obtain true heading.
+      double heading_deg = 0.0;
+      /// @brief Orientation quality factor Q (0-1), per RSS421 ICD section
+      /// 6.6. Q = 1 - |(|A| - 1000)| / 1000 clamped to 0-1, where |A| is the
+      /// total acceleration magnitude (mg). 1.0 = accelerometer sees exactly
+      /// 1g (stationary, orientation reliable); Q falls with linear
+      /// acceleration or vibration.
+      double orientation_quality = 0.0;
     };
 
     /// A string that can be used as a column header for sensor data CSV files.
     /// The variable names match the order of the variables in the sensor
     /// data string, and the order of the members in RS41SensorData
     String sensor_data_var_names =  
-      "frame_count,air_temp_degC,humdity_percent,hsensor_temp_degC,pres_mb,internal_temp_degC,module_status,module_error,pcb_supply_V,lsm303_temp_degC,pcb_heater_on,mag_hdgXY_deg,mag_hdgXZ_deg,mag_hdgYZ_deg,accelX_mG,accelY_mG,accelZ_mG";
+      "frame_count,air_temp_degC,humdity_percent,hsensor_temp_degC,pres_mb,internal_temp_degC,module_status,module_error,pcb_supply_V,lsm303_temp_degC,pcb_heater_on,magX_mG,magY_mG,magZ_mG,accelX_mg,accelY_mg,accelZ_mg,roll_deg,pitch_deg,heading_deg,orientation_quality";
 
   public:
     /// @brief Constructor
@@ -128,6 +145,12 @@ class RS41 {
     /// a total of (say) 100 characters to be sent and received,
     /// this would be ~18ms.
     String rs41_cmd(const String& cmd);
+    /// @brief Compute orientation from the raw magnetometer and
+    /// accelerometer values, following RSS421 ICD section 6. Fills the
+    /// roll_deg, pitch_deg and heading_deg members of the record.
+    /// @param data The sensor record to read the mag/accel values from
+    /// and write the computed roll, pitch and heading back into.
+    void compute_orientation(RS41SensorData_t& data);
     void clear_read_buffer();
     bool tokenize_string(String& source, String (&tokens)[], int nTokens);
 
