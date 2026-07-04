@@ -24,14 +24,20 @@ void setup()
 #endif
 
 
+  // Configure the serial port, power on the RS41, capture the banner, query the metadata.
+  rs41.init();
+
+  // Print the metadata captured during init(). Don't issue a fresh
+  // read_meta_data() here: init() has already primed an RSD read, and
+  // that pending sensor frame would collide with a new RMD query.
+  Serial.println("RS41 meta data:" + rs41.meta_data());
+
   Serial.println("Do you want to recondition the RS41[y/n]? ");
   while (Serial.available() == 0) {}
   String ans = Serial.readString().trim();
   if ((ans=="Y") || (ans=="y")) {
     recondition = true;
   }
-  // Configure the serial port, power on the RS41, capture the banner, query the metadata.
-  rs41.init();
 }
 
 void loop()
@@ -39,7 +45,6 @@ void loop()
   if (first_loop) {
     Serial.println(rs41.banner());
     Serial.println(rs41.sensor_data_var_names);
-    Serial.println("RS41 meta data:" + rs41.meta_data());
     first_loop = false;
   }
 

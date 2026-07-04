@@ -43,7 +43,7 @@ void RS41::init() {
   // Get the meta data
   for (int i = 0; i < RS41_SERIAL_TRIES; i++) {
       _meta = read_meta_data();
-      if (_meta.indexOf(",") != -1) {
+      if (_meta.length() != 0) {
         break;
     }
   }
@@ -145,7 +145,47 @@ String RS41::read_sensor_data(bool nocache=false) {
 }
 
 String RS41::read_meta_data() {
-  return(rs41_cmd("RMD"));
+  // The RMD reply is a multi-line block, one line per subsystem,
+  // each terminated by '\r'. rs41_cmd() would only return the first
+  // line, so read lines here until the RS41 stops sending (an empty
+  // read means readStringUntil() hit the serial timeout with no data).
+  //
+  // NOTE: the RMD output we actually get does NOT match the
+  // documentation. On this (development) module it emits per-subsystem
+  // status lines before the documented metadata line, e.g.:
+  //   MCP9808   [$18]: PASS
+  //   MMC5983MA [$30]: PASS
+  //   LSM6DSOTR [$6A]: PASS  104Hz  Accel:+-2g  Gyro:+-250dps
+  //   CAL: Not loaded (EEPROM empty)
+  //   224954291,722.15.61,3.07,F,+0.00,+0.24,0,0   <- documented line
+  // We filter the extra lines out below. TODO: bug Terry about the
+  // discrepancy between the RMD output and the documentation.
+  clear_read_buffer();
+  _serial.write("RMD");
+  _serial.write("\r");
+  _serial.flush();
+
+  String meta;
+  while (true) {
+    String line = _serial.readStringUntil('\r');
+    line.trim();
+    if (line.length() == 0) {
+      break;
+    }
+    // Development-module lines that are not present on flight
+    // hardware. Print them, but don't save them as meta data.
+    if (line.startsWith("MCP9808") || line.startsWith("CAL") ||
+        line.startsWith("MMC5983MA") || line.startsWith("LSM6DSOTR")) {
+      Serial.println(line);
+      continue;
+    }
+    if (meta.length() != 0) {
+      meta += ";";
+    }
+    meta += line;
+  }
+  meta.trim();
+  return meta;
 }
 
 String RS41::recondition() {
