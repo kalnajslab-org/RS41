@@ -44,17 +44,20 @@ class RS41 {
       /// @brief 10. Status of the PCB heater: disabled =0, enabled=1
       unsigned int pcb_heater_on = 0;
       /// @brief 11. Raw magnetometer X (mG). RSS421 ICD RSD field 11.
-      int32_t magX_mG = 0;
+      float magX_mG = 0;
       /// @brief 12. Raw magnetometer Y (mG). RSS421 ICD RSD field 12.
-      int32_t magY_mG = 0;
+      float magY_mG = 0;
       /// @brief 13. Raw magnetometer Z (mG). RSS421 ICD RSD field 13.
-      int32_t magZ_mG = 0;
+      float magZ_mG = 0;
       /// @brief 14. Accelerometer X (mg, milli-g). RSS421 ICD RSD field 14.
-      int32_t accelX_mg = 0;
+      float accelX_mg = 0;
       /// @brief 15. Accelerometer Y (mg, milli-g). RSS421 ICD RSD field 15.
-      int32_t accelY_mg = 0;
+      float accelY_mg = 0;
       /// @brief 16. Accelerometer Z (mg, milli-g). RSS421 ICD RSD field 16.
-      int32_t accelZ_mg = 0;
+      float accelZ_mg = 0;
+      /// @brief 17. Magnetometer calibration active flag: 0 = no cal,
+      /// 1 = cal active. RSS421 ICD RSD field 17.
+      unsigned int cal_active = 0;
       /// @brief Computed roll angle (deg), positive = right side down.
       /// Derived from the accelerometer per RSS421 ICD section 6.3.
       double roll_deg = 0.0;
@@ -78,7 +81,7 @@ class RS41 {
     /// The variable names match the order of the variables in the sensor
     /// data string, and the order of the members in RS41SensorData
     String sensor_data_var_names =  
-      "frame_count,air_temp_degC,humdity_percent,hsensor_temp_degC,pres_mb,internal_temp_degC,module_status,module_error,pcb_supply_V,lsm303_temp_degC,pcb_heater_on,magX_mG,magY_mG,magZ_mG,accelX_mg,accelY_mg,accelZ_mg,roll_deg,pitch_deg,heading_deg,orientation_quality";
+      "frame_count,air_temp_degC,humdity_percent,hsensor_temp_degC,pres_mb,internal_temp_degC,module_status,module_error,pcb_supply_V,lsm303_temp_degC,pcb_heater_on,magX_mG,magY_mG,magZ_mG,accelX_mg,accelY_mg,accelZ_mg,cal_active,roll_deg,pitch_deg,heading_deg,orientation_quality";
 
   public:
     /// @brief Constructor
