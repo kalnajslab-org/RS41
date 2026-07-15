@@ -178,7 +178,7 @@ void RS41::compute_orientation(RS41SensorData_t & data)
       // accelerometer and magnetometer, gave correct roll/pitch/heading
       // (applying it to only one made the heading track roll). This remap is
       // left here, commented out, pending confirmation of the axis
-      // convention with Terry (another module vs. ICD discrepancy):
+      // convention (another module vs. ICD discrepancy):
       //   const double Mx = -data.magY_mG;
       //   const double My = -data.magX_mG;
       //   const double Mz =  data.magZ_mG;

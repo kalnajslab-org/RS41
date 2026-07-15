@@ -96,6 +96,7 @@ void loop()
         String(sensor_data.accelX_mg) + comma +
         String(sensor_data.accelY_mg) + comma +
         String(sensor_data.accelZ_mg) + comma +
+        String(sensor_data.cal_active) + comma +
         String(sensor_data.roll_deg) + comma +
         String(sensor_data.pitch_deg) + comma +
         String(sensor_data.heading_deg) + comma +

@@ -25,12 +25,17 @@ int num_params = 0;
 String selected_params[MAX_PARAMS];
 int num_selected = 0;
 
+// When true, the 'o' command shows an in-place orientation table (using
+// ANSI/VT100 escape sequences) instead of the CSV parameter rows.
+bool orientation_mode = false;
+
 // Forward declarations
 void build_param_names();
 bool is_valid_param(const String& name);
 String param_value(const RS41::RS41SensorData_t& data, const String& name);
 void print_named_line(String names[], int n);
 void print_sensor_values(const RS41::RS41SensorData_t& data);
+void draw_orientation(const RS41::RS41SensorData_t& data);
 void list_params();
 void set_sample_interval(const String& arg);
 void print_help();
@@ -39,12 +44,21 @@ void handle_console();
 void setup()
 {
   Serial.begin(115200);
+
+
   delay(3000);
 
   Serial.print("RS41test built: ");
   Serial.print(__DATE__);
   Serial.print(",");
   Serial.println(__TIME__);
+
+  // Power cycle the RS41 module. It was powered on
+  // on previously by the constructor, but that didn't power cycle it.
+  pinMode(RS41EN,OUTPUT);
+  digitalWrite(RS41EN, LOW);
+  delay(100);
+  digitalWrite(RS41EN, HIGH);
 
 #ifdef RATSRS41
   pinMode(RS41EN, OUTPUT);
@@ -62,13 +76,6 @@ void setup()
   // read_meta_data() here: init() has already primed an RSD read, and
   // that pending sensor frame would collide with a new RMD query.
   Serial.println("RS41 meta data:" + rs41.meta_data());
-
-  Serial.println("Do you want to recondition the RS41[y/n]? ");
-  while (Serial.available() == 0) {}
-  String ans = Serial.readString().trim();
-  if ((ans=="Y") || (ans=="y")) {
-    recondition = true;
-  }
 }
 
 // Split rs41.sensor_data_var_names into param_names[] once at startup.
@@ -124,6 +131,7 @@ String param_value(const RS41::RS41SensorData_t& data, const String& name)
   if (name == "accelX_mg")           return String(data.accelX_mg);
   if (name == "accelY_mg")           return String(data.accelY_mg);
   if (name == "accelZ_mg")           return String(data.accelZ_mg);
+  if (name == "cal_active")          return String(data.cal_active);
   if (name == "roll_deg")            return String(data.roll_deg);
   if (name == "pitch_deg")           return String(data.pitch_deg);
   if (name == "heading_deg")         return String(data.heading_deg);
@@ -200,6 +208,44 @@ void select_params(const String& arg)
   print_named_line(selected_params, num_selected);
 }
 
+// Draw the magnetometer, accelerometer and orientation values as a table
+// that updates in place. Uses ANSI/VT100 escape sequences: "\033[H" homes
+// the cursor, "\033[K" erases to end of line, "\033[0J" erases below. This
+// needs a real terminal (pio device monitor, PuTTY, screen); the Arduino
+// IDE Serial Monitor ignores the escapes.
+void draw_orientation(const RS41::RS41SensorData_t& data)
+{
+  char line[96];
+
+  Serial.print("\033[H");   // cursor to top-left
+  snprintf(line, sizeof(line),
+           "RSS421 orientation  frame %u\n(enter 's <interval(s)>' or 'o' to exit)",
+           data.frame_count);
+  Serial.print(line); Serial.print("\033[K\r\n\033[K\r\n");
+
+  Serial.print("               X         Y         Z\033[K\r\n");
+  snprintf(line, sizeof(line), "  Mag    %9.1f %9.1f %9.1f   mG",
+           data.magX_mG, data.magY_mG, data.magZ_mG);
+  Serial.print(line); Serial.print("\033[K\r\n");
+  snprintf(line, sizeof(line), "  Accel  %9.1f %9.1f %9.1f   mg",
+           data.accelX_mg, data.accelY_mg, data.accelZ_mg);
+  Serial.print(line); Serial.print("\033[K\r\n\033[K\r\n");
+  // Roll is rotation about X, pitch about Y, heading about Z (ICD 6.1).
+  snprintf(line, sizeof(line), "         %9s %9s %9s",
+           "roll", "pitch", "heading");
+  Serial.print(line); Serial.print("\033[K\r\n");
+  snprintf(line, sizeof(line), "  Angle  %9.2f %9.2f %9.2f   deg",
+           data.roll_deg, data.pitch_deg, data.heading_deg);
+  Serial.print(line); Serial.print("\033[K\r\n\033[K\r\n");
+
+  snprintf(line, sizeof(line), "  Quality  %8.2f", data.orientation_quality);
+  Serial.print(line); Serial.print("\033[K\r\n\033[K\r\n");
+
+  Serial.print("  meta: "); Serial.print(rs41.meta_data()); Serial.print("\033[K\r\n");
+
+  Serial.print("\033[0J");  // erase anything left below the table
+}
+
 // Print the selected parameters as a comma-separated list, suitable for
 // use as a CSV header line.
 void list_params()
@@ -215,21 +261,29 @@ void list_params()
 // argument, report the current interval.
 void set_sample_interval(const String& arg)
 {
+  // In orientation mode the console output is clobbered by the table
+  // redraw, so suppress it; the changed refresh rate is the feedback.
   if (arg.length() == 0) {
-    Serial.print("Sample interval: ");
-    Serial.print(sensor_interval_ms / 1000.0);
-    Serial.println(" s");
+    if (!orientation_mode) {
+      Serial.print("Sample interval: ");
+      Serial.print(sensor_interval_ms / 1000.0);
+      Serial.println(" s");
+    }
     return;
   }
   float secs = arg.toFloat();
   if (secs <= 0.0) {
-    Serial.println("Invalid interval '" + arg + "'. Enter a positive number of seconds.");
+    if (!orientation_mode) {
+      Serial.println("Invalid interval '" + arg + "'. Enter a positive number of seconds.");
+    }
     return;
   }
   sensor_interval_ms = (unsigned long)(secs * 1000.0);
-  Serial.print("Sample interval set to ");
-  Serial.print(secs);
-  Serial.println(" s");
+  if (!orientation_mode) {
+    Serial.print("Sample interval set to ");
+    Serial.print(secs);
+    Serial.println(" s");
+  }
 }
 
 // Print the list of console commands.
@@ -239,6 +293,8 @@ void print_help()
   Serial.println("RS41test commands:");
   Serial.println("  h - print this help");
   Serial.println("  l - print the selected parameters as a CSV header line");
+  Serial.println("  o - toggle the in-place orientation table (needs a VT100 terminal)");
+  Serial.println("  r - start RH reconditioning");
   Serial.println("  p - display all parameters");
   Serial.println("  p <name>,<name>,... - display only the listed parameters");
   Serial.println("  s - report the sample interval");
@@ -264,6 +320,18 @@ void handle_console()
       break;
     case 'l':
       list_params();
+      break;
+    case 'r':
+      recondition = true;
+      Serial.println("RH reconditioning requested.");
+      break;
+    case 'o':
+      orientation_mode = !orientation_mode;
+      Serial.print("\033[2J\033[H");   // clear the screen on entry and exit
+      if (!orientation_mode) {
+        Serial.println("Orientation mode off.");
+        list_params();   // reprint the CSV header for the resumed rows
+      }
       break;
     case 's': {
       String arg = cmd.substring(1);
@@ -318,7 +386,11 @@ void loop()
 
   RS41::RS41SensorData_t sensor_data = rs41.decoded_sensor_data(false);
   if (sensor_data.valid) {
-    print_sensor_values(sensor_data);
+    if (orientation_mode) {
+      draw_orientation(sensor_data);
+    } else {
+      print_sensor_values(sensor_data);
+    }
   } else {
     Serial.println("Unable to obtain RS41 sensor data");
   }
