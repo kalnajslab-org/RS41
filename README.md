@@ -28,8 +28,9 @@ Open an example sketch in the Arduino IDE and run it.
   command, and wait for the new data.
 
 ## Examples
-- `examples/RS41test.ino` samples the RS41 and prints data to the serial console.
-  At program start, you are prompted whether you want to do a sensor regeneration or not.
+- `examples/RS41console` samples the RS41 and prints data to the serial console.
+  It offers interactive commands (send `h` for help) for selecting parameters,
+  setting the sample rate, an orientation table, and sensor reconditioning.
 
 - `examples/RS41csv` samples from the RS41 and writes to a CSV file on the SD card, and to the serial console.
   A new CSV file is created everytime the program is run. The filename is `RS41_data_nnnnn.csv`, with
@@ -50,6 +51,11 @@ frame_count,air_temp_degC,humdity_percent,hsensor_temp_degC,pres_mb,internal_tem
 6,23.46,42.12,23.58,770.68,26.88,6152,0,5.90,23.40,0,327.10,326.90,23.10,519.00,341.00,794.00
 7,23.40,42.13,23.57,770.68,26.92,6152,0,5.90,23.40,0,326.90,326.30,23.60,526.00,344.00,787.00
 ```
+
+- `examples/PassThru` is a transparent serial bridge between the USB console and the RS41.
+  Characters you type are forwarded to the RS41, and its replies are echoed back to the
+  console (a LF is added after each CR for readability). Use it to issue raw RS41/RSS421
+  commands by hand (e.g. `RSD`, `RMD`, `RHS`) and see the raw responses.
 
 
 

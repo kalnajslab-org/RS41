@@ -1,6 +1,6 @@
-// Test an RS41 module
+// Interactive serial console for an RS41 module.
 
-// The user is prompted whether the RS41 should be reconditioned.
+// Send 'h' on the serial console for the list of commands.
 
 #include <RS41.h>
 
@@ -48,7 +48,7 @@ void setup()
 
   delay(3000);
 
-  Serial.print("RS41test built: ");
+  Serial.print("RS41console built: ");
   Serial.print(__DATE__);
   Serial.print(",");
   Serial.println(__TIME__);
@@ -290,7 +290,7 @@ void set_sample_interval(const String& arg)
 void print_help()
 {
   Serial.println();
-  Serial.println("RS41test commands:");
+  Serial.println("RS41console commands:");
   Serial.println("  h - print this help");
   Serial.println("  l - print the selected parameters as a CSV header line");
   Serial.println("  o - toggle the in-place orientation table (needs a VT100 terminal)");
