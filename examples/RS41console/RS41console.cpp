@@ -294,6 +294,7 @@ void print_help()
   Serial.println("  h - print this help");
   Serial.println("  l - print the selected parameters as a CSV header line");
   Serial.println("  o - toggle the in-place orientation table (needs a VT100 terminal)");
+  Serial.println("  o <seconds> - same, and set the sample interval (like 's')");
   Serial.println("  r - start RH reconditioning");
   Serial.println("  p - display all parameters");
   Serial.println("  p <name>,<name>,... - display only the listed parameters");
@@ -325,7 +326,13 @@ void handle_console()
       recondition = true;
       Serial.println("RH reconditioning requested.");
       break;
-    case 'o':
+    case 'o': {
+      // An optional argument sets the sample interval, same as 's'.
+      String arg = cmd.substring(1);
+      arg.trim();
+      if (arg.length() > 0) {
+        set_sample_interval(arg);
+      }
       orientation_mode = !orientation_mode;
       Serial.print("\033[2J\033[H");   // clear the screen on entry and exit
       if (!orientation_mode) {
@@ -333,6 +340,7 @@ void handle_console()
         list_params();   // reprint the CSV header for the resumed rows
       }
       break;
+    }
     case 's': {
       String arg = cmd.substring(1);
       arg.trim();
