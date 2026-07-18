@@ -163,38 +163,35 @@ RS41::RS41SensorData_t RS41::decoded_sensor_data(bool nocache = false)
 
 void RS41::compute_orientation(RS41SensorData_t & data)
 {
-      // Straight from the ICD section 6: use the raw magnetometer and
-      // accelerometer axes as reported.
+      // Algorithm and axis convention taken from
+      // Apps/RSS421/RSS421_Heading_Validator.py (the ICD section 6 math is
+      // wrong). The accelerometer's raw sensor axes are swapped and negated to
+      // the logical frame used for orientation: logical X = +raw Y,
+      // logical Y = -raw X, Z unchanged.
+      //
+      // The magnetometer is used as reported, NOT remapped: when calibration
+      // is active the PIC firmware's Apply_Mag_Calibration already outputs the
+      // logical axes (it applies logical_Y = -raw_Y internally). This assumes
+      // cal_active == 1 (RSD mag fields 11-13 are calibrated). If cal_active
+      // is 0 the mag is raw and My would need negating for a correct heading.
       const double Mx = data.magX_mG;
       const double My = data.magY_mG;
       const double Mz = data.magZ_mG;
-      const double Ax = data.accelX_mg;
-      const double Ay = data.accelY_mg;
+      const double Ax = data.accelY_mg;
+      const double Ay = -data.accelX_mg;
       const double Az = data.accelZ_mg;
 
-      // NOTE: on the module we tested, the IMU axes did NOT match the frame
-      // the ICD formulas assume. Empirically, board X = -(sensor Y) and
-      // board Y = -(sensor X), with Z unchanged, applied to BOTH the
-      // accelerometer and magnetometer, gave correct roll/pitch/heading
-      // (applying it to only one made the heading track roll). This remap is
-      // left here, commented out, pending confirmation of the axis
-      // convention (another module vs. ICD discrepancy):
-      //   const double Mx = -data.magY_mG;
-      //   const double My = -data.magX_mG;
-      //   const double Mz =  data.magZ_mG;
-      //   const double Ax = -data.accelY_mg;
-      //   const double Ay = -data.accelX_mg;
-      //   const double Az =  data.accelZ_mg;
-
-      // Roll and pitch from the accelerometer (ICD 6.3). Units cancel in the
-      // ratios, so raw mg/mG counts can be used directly.
-      const double roll = atan2(Ay, Az);
-      const double pitch = atan2(-Ax, sqrt(Ay * Ay + Az * Az));
+      // Pitch and roll from the accelerometer. Units cancel in the ratios,
+      // so raw mg/mG counts can be used directly.
+      const double pitch = atan2(Ax, sqrt(Ay * Ay + Az * Az));
+      const double roll  = atan2(Ay, Az);
+      const double cp = cos(pitch), sp = sin(pitch);
+      const double cr = cos(roll),  sr = sin(roll);
 
       // Tilt-compensate the magnetometer into the horizontal plane, then
-      // compute the magnetic heading (ICD 6.4).
-      const double Mxh = Mx * cos(pitch) + My * sin(roll) * sin(pitch) + Mz * cos(roll) * sin(pitch);
-      const double Myh = My * cos(roll) - Mz * sin(roll);
+      // compute the magnetic heading.
+      const double Mxh = Mx * cp + My * sr * sp + Mz * cr * sp;
+      const double Myh = My * cr - Mz * sr;
       double heading = atan2(-Myh, Mxh) * 180.0 / PI;
       if (heading < 0.0)
       {
@@ -206,10 +203,10 @@ void RS41::compute_orientation(RS41SensorData_t & data)
       data.pitch_deg = pitch * 180.0 / PI;
       data.heading_deg = heading;
 
-      // Orientation quality factor Q (ICD 6.6). The roll/pitch tilt
-      // compensation assumes the accelerometer measures only gravity (1g =
-      // 1000 mg); Q falls as the total acceleration departs from 1g, so it
-      // gates whether the computed orientation can be trusted.
+      // Orientation quality factor Q. The roll/pitch tilt compensation
+      // assumes the accelerometer measures only gravity (1g = 1000 mg); Q
+      // falls as the total acceleration departs from 1g, so it gates whether
+      // the computed orientation can be trusted.
       const double a_mag = sqrt(Ax * Ax + Ay * Ay + Az * Az);
       double q = 1.0 - fabs(a_mag - 1000.0) / 1000.0;
       if (q < 0.0)
