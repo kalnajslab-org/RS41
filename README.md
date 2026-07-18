@@ -27,6 +27,13 @@ Open an example sketch in the Arduino IDE and run it.
   request, which will clear the read buffer, issue the RSD
   command, and wait for the new data.
 
+## Orientation
+The RSS421 PTU Reader ICD's orientation equations (section 6) are erroneous.
+The correct roll/pitch/heading algorithm is implemented in
+`RS41::compute_orientation()` (`src/RS41.cpp`); the comments there explain the
+axis remap and where the math came from. Do not "fix" that code back toward the
+ICD.
+
 ## Examples
 - `examples/RS41console` samples the RS41 and prints data to the serial console.
   It offers interactive commands (send `h` for help) for selecting parameters,
