@@ -151,14 +151,30 @@ RS41::RS41SensorData_t RS41::decoded_sensor_data(bool nocache = false)
       decoded_data.accelZ_mg = tokens[16].toFloat();
     }
 
-    // Fill roll_deg/pitch_deg/heading_deg/orientation_quality for any
-    // successfully decoded record.
+    // Fill the derived fields for any successfully decoded record.
     if (decoded_data.valid)
     {
       compute_orientation(decoded_data);
+      decoded_data.flags = status_flags(decoded_data.module_status,
+                                        decoded_data.module_error);
     }
   }
   return decoded_data;
+}
+
+RS41::RS41StatusFlags_t RS41::status_flags(unsigned int status_word,
+                                           unsigned int error_word)
+{
+  RS41StatusFlags_t flags;
+  flags.high_internal_temp = (status_word >> 2) & 1u;  // S.2
+  flags.regen_temp_low     = (error_word  >> 2) & 1u;  // E.2
+  flags.ptu_failure        = (error_word  >> 3) & 1u;  // E.3
+  flags.flash_failure      = (error_word  >> 4) & 1u;  // E.4
+  flags.low_input_voltage  = (error_word  >> 6) & 1u;  // E.6
+  flags.not_calibrated     = (error_word  >> 7) & 1u;  // E.7
+  flags.no_pressure_module = (error_word  >> 8) & 1u;  // E.8
+  flags.disconnected_boom  = (error_word  >> 9) & 1u;  // E.9
+  return flags;
 }
 
 void RS41::compute_orientation(RS41SensorData_t & data)
